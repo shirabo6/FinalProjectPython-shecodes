@@ -50,6 +50,15 @@ class Employee:
         else:
             print("age successfully updated")
 
+    def no_missing_data(self):
+        if self.ID and self.age and self.phone_number and self.name:
+            return True
+        else:
+            print("Parts of the data are missing")
+            return False
+        
+        
+
             
 
     

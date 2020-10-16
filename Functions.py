@@ -1,20 +1,24 @@
 # functions
 
 from Employee import Employee
-             
+import sqlite3
+            
 
 EmpList=[]
 EmpListSTR = []
     
 def PrintList():
     emp=[]
-    import sqlite3
-    conn = sqlite3.connect('TryEmp.db')
-    c = conn.cursor()
-
-    for row in c.execute('''SELECT * FROM employees '''):
-        emp.append([row[0] ,row[1] , row[2], row[3]])
-    conn.close
+    try:
+        conn = sqlite3.connect('TryEmp.db')
+        c = conn.cursor()
+        SelectStatement = c.execute('''SELECT * FROM employees ''')
+        for row in SelectStatement :
+            emp.append([row[0] ,row[1] , row[2], row[3]])
+    except Exception as e:
+        print(e)
+    finally:
+        conn.close
     
     from prettytable import PrettyTable
     t = PrettyTable(['ID number', 'Name', 'Age' , 'Phone Number'])
@@ -25,15 +29,19 @@ def PrintList():
 def Add_Employee(ID_number):
 
     emp=[]
-    import sqlite3
-    conn = sqlite3.connect('TryEmp.db')
-    c = conn.cursor()
-
-    for row in c.execute('''SELECT * FROM employees '''):
-        emp.append(row[0])
-    conn.close
+    try:
+        conn = sqlite3.connect('TryEmp.db')
+        c = conn.cursor()
+        SelectStatement = c.execute('''SELECT * FROM employees ''')
+        for row in SelectStatement:
+            emp.append(row[0])
+    except Exception as e:
+        print(e)
+    finally:
+        conn.close
+        
     a= str(ID_number)
-    while a in emp:
+    if a in emp:
         print("Employee already exist")
         return None
 
@@ -45,25 +53,28 @@ def Add_Employee(ID_number):
     ID_number.update_age()
     ID_number.update_phone_number()
 
-    if ID_number.ID and ID_number.age and ID_number.name and ID_number.phone_number:
+    check = ID_number.no_missing_data()
+    
+    if check== True:
         # insert into database
-        import sqlite3
-        conn = sqlite3.connect('TryEmp.db')
-        c = conn.cursor()
-        sql = "INSERT INTO employees VALUES(?,?,?,?)"
-        val= []
-        val.append((str(ID_number.ID),str(ID_number.name),str(ID_number.age),str(ID_number.phone_number)))
-        c.executemany(sql, val)
-        conn.commit()
-        conn.close()
+        try:
+            conn = sqlite3.connect('TryEmp.db')
+            c = conn.cursor()
+            InsertStatement = "INSERT INTO employees VALUES(?,?,?,?)"
+            values= []
+            values.append((str(ID_number.ID),str(ID_number.name),str(ID_number.age),str(ID_number.phone_number)))
+            c.executemany(InsertStatement, values)
+            conn.commit()
+        except Exception as e:
+            print(e)
+        finally:
+            conn.close()
 
         n = str(ID_number.ID)
         EmpListSTR.append(n)
         EmpList = []
         EmpList.append(ID_number)
         
-    else:
-        print("Parts of the data are missing")
         
 def Add_Employee_csv(path_file):
     import csv
@@ -86,15 +97,20 @@ def Add_Employee_csv(path_file):
                 line+=1 
                 if row[0] and re.search(pattern_ID,row[0]):
                     emp=[]
-                    import sqlite3
-                    conn = sqlite3.connect('TryEmp.db')
-                    c = conn.cursor()
-                    for R in c.execute('''SELECT * FROM employees '''):
-                        emp.append(R[0])
-                    conn.close
+                    try:
+                        conn = sqlite3.connect('TryEmp.db')
+                        c = conn.cursor()
+                        SelectStatement = c.execute('''SELECT * FROM employees ''')
+                        for R in SelectStatement :
+                            emp.append(R[0])
+                    except Exception as e:
+                        print(e)
+                    finally:
+                        conn.close
+                        
                     a= str(row[0])
                     # check whether employee already exists
-                    while a in emp:
+                    if a in emp:
                         print("Employee already exists")
                     else:
                         ID_number =Employee()
@@ -112,17 +128,22 @@ def Add_Employee_csv(path_file):
                         else:
                             print("Employee's phone_number is missing or not valid")
 
-                        if ID_number.ID and ID_number.age and ID_number.name and ID_number.phone_number:
+                        check = ID_number.no_missing_data()
+    
+                        if check== True:
                         # insert into database
-                            import sqlite3
-                            conn = sqlite3.connect('TryEmp.db')
-                            c = conn.cursor()
-                            sql = "INSERT INTO employees VALUES(?,?,?,?)"
-                            val= []
-                            val.append((str(ID_number.ID),str(ID_number.name),str(ID_number.age),str(ID_number.phone_number)))
-                            c.executemany(sql, val)
-                            conn.commit()
-                            conn.close()
+                            try:
+                                conn = sqlite3.connect('TryEmp.db')
+                                c = conn.cursor()
+                                InsertStatement = "INSERT INTO employees VALUES(?,?,?,?)"
+                                values= []
+                                values.append((str(ID_number.ID),str(ID_number.name),str(ID_number.age),str(ID_number.phone_number)))
+                                c.executemany(InsertStatement, values)
+                                conn.commit()
+                            except Exception as e:
+                                print(e)
+                            finally:
+                                conn.close()
                             
                             n = str(ID_number.ID)
                             EmpListSTR.append(n)
@@ -130,18 +151,15 @@ def Add_Employee_csv(path_file):
                             EmpList.append(ID_number)
                             print("Employee successfully added")
 
-                else:
-                    print("ID number is not valid, can not add Employee")
 
 
 def Delete_Employee(ID_number):
     n = str(ID_number)
     try:
-        import sqlite3
         conn = sqlite3.connect('TryEmp.db')
         c = conn.cursor()
-        st= '''DELETE FROM employees WHERE ID_number = ? '''
-        c.execute(st, (n,))
+        DeleteStatement= '''DELETE FROM employees WHERE ID_number = ? '''
+        c.execute(DeleteStatement, (n,))
         conn.commit()
         conn.close()
 
@@ -162,11 +180,10 @@ def Delete_Employee_csv(path_file):
             else:
                 n = str(row[0])
                 try:
-                    import sqlite3
                     conn = sqlite3.connect('TryEmp.db')
                     c = conn.cursor()
-                    st= '''DELETE FROM employees WHERE ID_number = ? '''
-                    c.execute(st, (n,))
+                    DeleteStatement= '''DELETE FROM employees WHERE ID_number = ? '''
+                    c.execute(DeleteStatement, (n,))
                     conn.commit()
                     conn.close()
                 except ValueError:
@@ -174,6 +191,45 @@ def Delete_Employee_csv(path_file):
                 else:
                     print("Employee removed")
                     
+
+
+def FirstRun():
+    try:
+        conn = sqlite3.connect('TryEmp.db')
+        c = conn.cursor()
+        c.execute('''CREATE TABLE IF NOT EXISTS employees
+                     ( ID_number text, Name text, Age text, Phone_number text)''')
+        conn.commit()
+    except Exception as e:
+        print(e)
+    finally:
+        conn.close()
+
+    
+
+
+
+
+
+
+
+
+
+
+'''
+# check:
+
+Add_Employee(111111111)
+Add_Employee_csv('workers.csv')
+PrintList()
+
+#Delete_Employee_csv('workers.csv')
+#Delete_Employee(111111111)
+PrintList()
+Save_Data()
+   
+'''
+        
 ##def Save_Data():
 ##    # Save EmpList to a database 
 ##    import sqlite3
@@ -193,34 +249,7 @@ def Delete_Employee_csv(path_file):
 ##    c.executemany(sql, val)
 ##    conn.commit()
 ##    #print('We have inserted', c.rowcount, 'records to the table.')
-##    conn.close()
-
-def FirstRun():
-    import sqlite3
-    conn = sqlite3.connect('TryEmp.db')
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS employees
-                 ( ID_number text, Name text, Age text, Phone_number text)''')
-    conn.commit()
-    conn.close()
-
-    
-
-'''
-# check:
-
-Add_Employee(111111111)
-Add_Employee_csv('workers.csv')
-PrintList()
-
-#Delete_Employee_csv('workers.csv')
-#Delete_Employee(111111111)
-PrintList()
-Save_Data()
-   
-'''
-        
-        
+##    conn.close()     
             
     
   
